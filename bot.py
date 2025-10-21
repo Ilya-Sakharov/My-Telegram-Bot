@@ -4,7 +4,7 @@ import os
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton
 
 # Вставь сюда свой токен от BotFather
-TOKEN = 7327050078:AAHNRHkHQbnI3xftSd170IHl63sEy0V35wU
+TOKEN = '7327050078:AAHNRHkHQbnI3xftSd170IHl63sEy0V35wU'
 bot = telebot.TeleBot(TOKEN)
 
 # Файл для хранения балансов
