@@ -37,6 +37,7 @@ TIMEZONES = {
     'Нью-Йорк (UTC-5)': 'America/New_York',
     'Лос-Анджелес (UTC-8)': 'America/Los_Angeles',
     'Токио (UTC+9)': 'Asia/Tokyo',
+    'Дубай (UTC+4)': 'Asia/Dubai',  # Добавлен твой часовой пояс
     'UTC (по умолчанию)': 'UTC'
 }
 
@@ -47,6 +48,7 @@ def get_main_keyboard():
     keyboard.add(KeyboardButton('Отрицательные действия'))
     keyboard.add(KeyboardButton('Показать баланс'))
     keyboard.add(KeyboardButton('Обнулить историю'))
+    keyboard.add(KeyboardButton('Отменить действие'))
     keyboard.add(KeyboardButton('Дополнительно'))
     return keyboard
 
@@ -104,36 +106,36 @@ def get_auto_reset_keyboard(user_id, enable):
     return keyboard
 
 # Приветственное сообщение
-WELCOME_MESSAGE = """
-Привет! Это бот от телеграм-канала @caxapandwine. Вы хотите быть в форме, но считать калории вам лень? Есть решение!
+WELCOME_MESSAGE = " Привет! Это бот от телеграм-канала @caxapandwine.
 
-Это игра-тамагочи для вашего тела. За каждое "хорошее" действие вы будете получать очки. За каждое плохое – тратить.
+Хочешь быть в форме, но считать калории лень? Есть решение!
+
+Это тамагочи для тела. За каждое «хорошее» действие будешь получать очки. За каждое плохое – тратить.
 
 Как в соревновании факультетов в Гарри Поттере!
 
-Например, прошли 5 000 шагов – получили 15 очков.
-Съели большую шоколадку – потратили 20 очков.
+Прошел 5 000 шагов – получил 15 очков.
+Съел большую шоколадку – потратил 20 очков.
 
-Вам не нужно считать калории или очень сильно заморачиваться в выборе диеты.
+Не нужно считать калории или очень сильно заморачиваться в выборе диеты.
 
-Смысл намного легче – просто старайтесь, чтобы в конце каждого дня у вас был положительный баланс.
+Смысл намного легче – просто старайся, чтобы в конце каждого дня баланс был положительный.
 
-В боте есть кнопка "Обнулить историю". Она позволит начать всё сначала.
+Кнопка «Обнулить историю» позволит начать всё сначала.
 
-Если хотите, чтобы история автоматически обнулялась каждый день – нажмите на кнопку "Дополнительно", затем выберите "Обнулять историю каждый день".
+Если хочешь, чтобы история автоматически обнулялась каждый день – нажми на кнопку «Дополнительно», затем выбери «Обнулять историю каждый день».
 
 Приятного использования!
 
-P.S. Пожелания и комментарии о работе бота присылайте в лс @Ilia_caxap
-P.P.S. И подпишитесь на канал @caxapandwine
-"""
+P.S. Пожелания и комментарии о работе бота присылай в лс @Ilia_caxap
+P.P.S. И подпишись на канал @caxapandwine "
 
 # Реакция на /start
 @bot.message_handler(commands=['start'])
 def start(message):
     user_id = str(message.from_user.id)
     if user_id not in balances:
-        balances[user_id] = {'balance': 0, 'auto_reset': False, 'last_reset': None, 'timezone': None}
+        balances[user_id] = {'balance': 0, 'auto_reset': False, 'last_reset': None, 'timezone': None, 'action_history': []}
         save_data()
     bot.send_message(message.chat.id, WELCOME_MESSAGE, reply_markup=get_main_keyboard())
     bot.send_message(message.chat.id, 'Пожалуйста, выберите ваш часовой пояс для настройки напоминаний:', reply_markup=get_timezone_keyboard())
@@ -143,7 +145,7 @@ def start(message):
 def handle_message(message):
     user_id = str(message.from_user.id)
     if user_id not in balances:
-        balances[user_id] = {'balance': 0, 'auto_reset': False, 'last_reset': None, 'timezone': None}
+        balances[user_id] = {'balance': 0, 'auto_reset': False, 'last_reset': None, 'timezone': None, 'action_history': []}
         save_data()
 
     text = message.text
@@ -156,14 +158,28 @@ def handle_message(message):
         bot.send_message(message.chat.id, 'Выберите отрицательное действие:', reply_markup=get_negative_actions_keyboard())
 
     elif text == 'Показать баланс':
-        bot.send_message(message.chat.id, f'Ваш баланс – {balances[user_id]["balance"]} очков', reply_markup=get_main_keyboard())
+        bot.send_message(message.chat.id, f'Ваш баланс \– {balances[user_id]["balance"]} очков', reply_markup=get_main_keyboard())
 
     elif text == 'Обнулить историю':
         bot.send_message(
             message.chat.id, 
-            f'⚠️ Вы уверены, что хотите обнулить историю?\n\nЭто действие удалит все ваши очки ({balances[user_id]["balance"]} очков) и нельзя будет отменить!',
+            f'⚠️ Вы уверены, что хотите обнулить историю?\n\nЭто действие удалит все ваши очки ({balances[user_id]["balance"]} очков) и нельзя будет отменить\!',
             reply_markup=get_reset_keyboard(user_id)
         )
+
+    elif text == 'Отменить действие':
+        if balances[user_id]['action_history']:
+            last_action = balances[user_id]['action_history'].pop()  # Удаляем последнее действие
+            action_name, points = last_action
+            balances[user_id]['balance'] -= points  # Откатываем баланс
+            save_data()
+            bot.send_message(
+                message.chat.id,
+                f'Действие "{action_name}" ({points} очков) отменено. Текущий баланс: {balances[user_id]["balance"]} очков',
+                reply_markup=get_main_keyboard()
+            )
+        else:
+            bot.send_message(message.chat.id, 'Нет действий для отмены.', reply_markup=get_main_keyboard())
 
     elif text == 'Дополнительно':
         bot.send_message(message.chat.id, 'Дополнительные настройки:', reply_markup=get_extra_keyboard())
@@ -171,47 +187,56 @@ def handle_message(message):
     # Подменю "Положительные действия"
     elif text == '5 000 шагов (+15)':
         balances[user_id]['balance'] += 15
+        balances[user_id]['action_history'].append(('5 000 шагов', 15))
         save_data()
         bot.send_message(message.chat.id, f'Добавлено 15 очков! Текущий баланс: {balances[user_id]["balance"]} очков', reply_markup=get_positive_actions_keyboard())
 
     elif text == 'Полноценная тренировка (+30)':
         balances[user_id]['balance'] += 30
+        balances[user_id]['action_history'].append(('Полноценная тренировка', 30))
         save_data()
         bot.send_message(message.chat.id, f'Добавлено 30 очков! Текущий баланс: {balances[user_id]["balance"]} очков', reply_markup=get_positive_actions_keyboard())
 
     elif text == 'Мини-тренировка (+15)':
         balances[user_id]['balance'] += 15
+        balances[user_id]['action_history'].append(('Мини-тренировка', 15))
         save_data()
         bot.send_message(message.chat.id, f'Добавлено 15 очков! Текущий баланс: {balances[user_id]["balance"]} очков', reply_markup=get_positive_actions_keyboard())
 
     # Подменю "Отрицательные действия"
     elif text == 'Мини-шоколадка (-10)':
         balances[user_id]['balance'] -= 10
+        balances[user_id]['action_history'].append(('Мини-шоколадка', -10))
         save_data()
         bot.send_message(message.chat.id, f'Вычтено 10 очков! Текущий баланс: {balances[user_id]["balance"]} очков', reply_markup=get_negative_actions_keyboard())
 
     elif text == 'Большая шоколадка (-20)':
         balances[user_id]['balance'] -= 20
+        balances[user_id]['action_history'].append(('Большая шоколадка', -20))
         save_data()
         bot.send_message(message.chat.id, f'Вычтено 20 очков! Текущий баланс: {balances[user_id]["balance"]} очков', reply_markup=get_negative_actions_keyboard())
 
     elif text == 'Бокал вина/пива (-20)':
         balances[user_id]['balance'] -= 20
+        balances[user_id]['action_history'].append(('Бокал вина/пива', -20))
         save_data()
         bot.send_message(message.chat.id, f'Вычтено 20 очков! Текущий баланс: {balances[user_id]["balance"]} очков', reply_markup=get_negative_actions_keyboard())
 
     elif text == 'Кекс/круассан/пирожное (-20)':
         balances[user_id]['balance'] -= 20
+        balances[user_id]['action_history'].append(('Кекс/круассан/пирожное', -20))
         save_data()
         bot.send_message(message.chat.id, f'Вычтено 20 очков! Текущий баланс: {balances[user_id]["balance"]} очков', reply_markup=get_negative_actions_keyboard())
 
     elif text == 'Тяжёлое блюдо (-30)':
         balances[user_id]['balance'] -= 30
+        balances[user_id]['action_history'].append(('Тяжёлое блюдо', -30))
         save_data()
         bot.send_message(message.chat.id, f'Вычтено 30 очков! Текущий баланс: {balances[user_id]["balance"]} очков', reply_markup=get_negative_actions_keyboard())
 
     elif text == 'Сигара (-30)':
         balances[user_id]['balance'] -= 30
+        balances[user_id]['action_history'].append(('Сигара', -30))
         save_data()
         bot.send_message(message.chat.id, f'Вычтено 30 очков! Текущий баланс: {balances[user_id]["balance"]} очков', reply_markup=get_negative_actions_keyboard())
 
@@ -247,6 +272,7 @@ def handle_reset_callback(call):
     if call.data.startswith('reset_confirm_'):
         balances[user_id]['balance'] = 0
         balances[user_id]['last_reset'] = datetime.now().isoformat()
+        balances[user_id]['action_history'] = []  # Очищаем историю при полном обнулении
         save_data()
         bot.edit_message_text(
             chat_id=call.message.chat.id,
@@ -266,7 +292,7 @@ def handle_reset_callback(call):
 
 # Обработка inline-кнопок (автообнуление)
 @bot.callback_query_handler(func=lambda call: call.data.startswith('auto_reset_'))
-def handle_auto_reset_callback(call):
+def handle_reset_callback(call):
     user_id = call.data.split('_')[3]
     
     if call.data.startswith('auto_reset_on_'):
@@ -309,6 +335,7 @@ def auto_reset_balances():
                 if balances[user_id].get('auto_reset', False):
                     balances[user_id]['balance'] = 0
                     balances[user_id]['last_reset'] = now.isoformat()
+                    balances[user_id]['action_history'] = []  # Очищаем историю при автообнулении
                     try:
                         bot.send_message(user_id, '🕛 Ваш баланс обнулился автоматически. Теперь у вас 0 очков.')
                     except:
