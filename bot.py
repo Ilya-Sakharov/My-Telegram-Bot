@@ -3,8 +3,8 @@ import json
 import os
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton
 
-# Токен должен быть в кавычках
-TOKEN = '7327050078:AAHNRHkHQbnI3xftSd170IHl63sEy0V35wU'
+# Токен из переменной окружения
+TOKEN = os.getenv('TOKEN')
 bot = telebot.TeleBot(TOKEN)
 
 # Файл для хранения балансов
