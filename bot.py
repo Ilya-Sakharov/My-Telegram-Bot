@@ -3,7 +3,7 @@ import json
 import os
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton
 
-# Вставь сюда свой токен от BotFather
+# Токен должен быть в кавычках
 TOKEN = '7327050078:AAHNRHkHQbnI3xftSd170IHl63sEy0V35wU'
 bot = telebot.TeleBot(TOKEN)
 
