@@ -94,8 +94,8 @@ def handle_reset_callback(call):
         bot.edit_message_text(
             chat_id=call.message.chat.id,
             message_id=call.message.message_id,
-            text='✅ История успешно обнулена! Ваш новый баланс: 0 очков.\n\nНачните заново с кнопок ниже.',
-            reply_markup=get_main_keyboard()
+            text='Ваша история обнулилась. Теперь у вас 0 очков.',
+            reply_markup=None
         )
         bot.send_message(call.message.chat.id, 'Выберите действие:', reply_markup=get_main_keyboard())
         
