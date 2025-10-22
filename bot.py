@@ -122,7 +122,7 @@ def handle_message(message):
         bot.send_message(message.chat.id, 'Выберите отрицательное действие:', reply_markup=get_negative_actions_keyboard())
 
     elif text == 'Показать баланс':
-        bot.send_message(message.chat.id, f'Ваш баланс \\– {balances[user_id]["balance"]} очков', reply_markup=get_main_keyboard())
+        bot.send_message(message.chat.id, f'Ваш баланс \– {balances[user_id]["balance"]} очков', reply_markup=get_main_keyboard())
 
     elif text == 'Обнулить историю':
         bot.send_message(
@@ -216,8 +216,7 @@ def handle_reset_callback(call):
         
     elif call.data.startswith('reset_cancel_'):
         bot.edit_message_text(
-            cha
-t_id=call.message.chat.id,
+            chat_id=call.message.chat.id,
             message_id=call.message.message_id,
             text=f'❌ Обнуление отменено. Ваш баланс сохранён: {balances[user_id]["balance"]} очков.',
             reply_markup=get_main_keyboard()
