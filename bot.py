@@ -5,6 +5,7 @@ from telebot.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMar
 from datetime import datetime, timedelta
 import threading
 import time
+import pytz
 
 # Токен из переменной окружения
 TOKEN = os.getenv('TOKEN')
@@ -24,6 +25,20 @@ else:
 def save_data():
     with open(DATA_FILE, 'w') as f:
         json.dump(balances, f)
+
+# Список популярных часовых поясов
+TIMEZONES = {
+    'Москва (UTC+3)': 'Europe/Moscow',
+    'Санкт-Петербург (UTC+3)': 'Europe/Moscow',
+    'Екатеринбург (UTC+5)': 'Asia/Yekaterinburg',
+    'Новосибирск (UTC+7)': 'Asia/Novosibirsk',
+    'Владивосток (UTC+10)': 'Asia/Vladivostok',
+    'Лондон (UTC)': 'Europe/London',
+    'Нью-Йорк (UTC-5)': 'America/New_York',
+    'Лос-Анджелес (UTC-8)': 'America/Los_Angeles',
+    'Токио (UTC+9)': 'Asia/Tokyo',
+    'UTC (по умолчанию)': 'UTC'
+}
 
 # Создаём главное меню
 def get_main_keyboard():
@@ -60,6 +75,15 @@ def get_negative_actions_keyboard():
 def get_extra_keyboard():
     keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
     keyboard.add(KeyboardButton('Обнулять историю каждый день'))
+    keyboard.add(KeyboardButton('Настроить напоминания'))
+    keyboard.add(KeyboardButton('Вернуться в главное меню'))
+    return keyboard
+
+# Создаём меню выбора часового пояса
+def get_timezone_keyboard():
+    keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+    for tz_name in TIMEZONES.keys():
+        keyboard.add(KeyboardButton(tz_name))
     keyboard.add(KeyboardButton('Вернуться в главное меню'))
     return keyboard
 
@@ -79,46 +103,25 @@ def get_auto_reset_keyboard(user_id, enable):
     keyboard.add(InlineKeyboardButton('Отмена', callback_data=f'auto_reset_cancel_{user_id}'))
     return keyboard
 
-# Приветственное сообщение без MarkdownV2
-WELCOME_MESSAGE = """
-Привет! Это бот от телеграм-канала @caxapandwine. Вы хотите быть в форме, но считать калории вам лень? Есть решение!
-
-Это игра-тамагочи для вашего тела. За каждое "хорошее" действие вы будете получать очки. За каждое плохое – тратить.
-
-Как в соревновании факультетов в Гарри Поттере!
-
-Например, прошли 5 000 шагов – получили 15 очков.
-Съели большую шоколадку – потратили 20 очков.
-
-Вам не нужно считать калории или очень сильно заморачиваться в выборе диеты.
-
-Смысл намного легче – просто старайтесь, чтобы в конце каждого дня у вас был положительный баланс.
-
-В боте есть кнопка "Обнулить историю". Она позволит начать всё сначала.
-
-Если хотите, чтобы история автоматически обнулялась каждый день – нажмите на кнопку "Дополнительно", затем выберите "Обнулять историю каждый день".
-
-Приятного использования!
-
-P.S. Пожелания и комментарии о работе бота присылайте в лс @Ilia_caxap
-P.P.S. И подпишитесь на канал @caxapandwine
-"""
+# Приветственное сообщение
+WELCOME_MESSAGE = "привет"
 
 # Реакция на /start
 @bot.message_handler(commands=['start'])
 def start(message):
     user_id = str(message.from_user.id)
     if user_id not in balances:
-        balances[user_id] = {'balance': 0, 'auto_reset': False, 'last_reset': None}
+        balances[user_id] = {'balance': 0, 'auto_reset': False, 'last_reset': None, 'timezone': None}
         save_data()
     bot.send_message(message.chat.id, WELCOME_MESSAGE, reply_markup=get_main_keyboard())
+    bot.send_message(message.chat.id, 'Пожалуйста, выберите ваш часовой пояс для настройки напоминаний:', reply_markup=get_timezone_keyboard())
 
 # Обработка нажатий кнопок (основное меню и подменю)
 @bot.message_handler(func=lambda message: True)
 def handle_message(message):
     user_id = str(message.from_user.id)
     if user_id not in balances:
-        balances[user_id] = {'balance': 0, 'auto_reset': False, 'last_reset': None}
+        balances[user_id] = {'balance': 0, 'auto_reset': False, 'last_reset': None, 'timezone': None}
         save_data()
 
     text = message.text
@@ -199,6 +202,14 @@ def handle_message(message):
             f'Вы хотите {action} автоматическое обнуление баланса каждый день в 00:00?',
             reply_markup=get_auto_reset_keyboard(user_id, enable)
         )
+
+    elif text == 'Настроить напоминания':
+        bot.send_message(message.chat.id, 'Выберите ваш часовой пояс:', reply_markup=get_timezone_keyboard())
+
+    elif text in TIMEZONES:
+        balances[user_id]['timezone'] = TIMEZONES[text]
+        save_data()
+        bot.send_message(message.chat.id, f'Часовой пояс установлен: {text}. Напоминания будут приходить в 10:00 и 20:00 по вашему времени.', reply_markup=get_main_keyboard())
 
     elif text == 'Вернуться в главное меню':
         bot.send_message(message.chat.id, 'Возвращаемся в главное меню:', reply_markup=get_main_keyboard())
@@ -283,8 +294,26 @@ def auto_reset_balances():
             save_data()
         time.sleep(60)  # Проверяем каждую минуту
 
-# Запускаем автообнуление в отдельном потоке
+# Функция для отправки напоминаний
+def send_reminders():
+    while True:
+        utc_now = datetime.now(pytz.UTC)
+        for user_id in balances:
+            user_data = balances[user_id]
+            if 'timezone' not in user_data or not user_data['timezone']:
+                continue  # Пропускаем, если пояс не выбран
+            try:
+                user_tz = pytz.timezone(user_data['timezone'])
+                local_time = utc_now.astimezone(user_tz)
+                if (local_time.hour == 10 or local_time.hour == 20) and local_time.minute == 0:
+                    bot.send_message(user_id, '📅 Не забудьте внести данные о ваших действиях!', reply_markup=get_main_keyboard())
+            except:
+                pass  # Игнорируем ошибки
+        time.sleep(60)  # Проверяем каждую минуту
+
+# Запускаем автообнуление и напоминания в отдельных потоках
 threading.Thread(target=auto_reset_balances, daemon=True).start()
+threading.Thread(target=send_reminders, daemon=True).start()
 
 # Запуск бота
 if __name__ == '__main__':
