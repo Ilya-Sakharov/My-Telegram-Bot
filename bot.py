@@ -38,21 +38,21 @@ def get_main_keyboard():
 # Создаём меню "Положительные действия"
 def get_positive_actions_keyboard():
     keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-    keyboard.add(KeyboardButton('5 000 шагов – плюс 15'))
-    keyboard.add(KeyboardButton('Полноценная тренировка – плюс 30'))
-    keyboard.add(KeyboardButton('Мини-тренировка – плюс 15'))
+    keyboard.add(KeyboardButton('5 000 шагов (+15)'))
+    keyboard.add(KeyboardButton('Полноценная тренировка (+30)'))
+    keyboard.add(KeyboardButton('Мини-тренировка (+15)'))
     keyboard.add(KeyboardButton('Вернуться в главное меню'))
     return keyboard
 
 # Создаём меню "Отрицательные действия"
 def get_negative_actions_keyboard():
     keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-    keyboard.add(KeyboardButton('Мини-шоколадка (Twix) – минус 10'))
-    keyboard.add(KeyboardButton('Большая шоколадка (Milka) – минус 20'))
-    keyboard.add(KeyboardButton('Бокал вина/пива – минус 20'))
-    keyboard.add(KeyboardButton('Кекс/круассан/пирожное – минус 20'))
-    keyboard.add(KeyboardButton('Тяжёлое блюдо (паста со сливками) – минус 30'))
-    keyboard.add(KeyboardButton('Сигара'))
+    keyboard.add(KeyboardButton('Мини-шоколадка (-10)'))
+    keyboard.add(KeyboardButton('Большая шоколадка (-20)'))
+    keyboard.add(KeyboardButton('Бокал вина/пива (-20)'))
+    keyboard.add(KeyboardButton('Кекс/круассан/пирожное (-20)'))
+    keyboard.add(KeyboardButton('Тяжёлое блюдо (-30)'))
+    keyboard.add(KeyboardButton('Сигара (-30)'))
     keyboard.add(KeyboardButton('Вернуться в главное меню'))
     return keyboard
 
@@ -79,16 +79,15 @@ def get_auto_reset_keyboard(user_id, enable):
     keyboard.add(InlineKeyboardButton('Отмена', callback_data=f'auto_reset_cancel_{user_id}'))
     return keyboard
 
-# Приветственное сообщение
+# Приветственное сообщение с жирным выделением
 WELCOME_MESSAGE = (
-    "Привет! Это бот от телеграм-канала @caxapandwine \n\n"
-    "Вы хотите **быть в форме, но считать калории вам лень?** Есть решение!\n\n"
+    "Привет! Это бот от телеграм-канала @caxapandwine. **Вы хотите быть в форме, но считать калории вам лень?** Есть решение!\n\n"
     "Это игра-тамагочи для вашего тела. За каждое \"хорошее\" действие вы будете получать очки. За каждое плохое – тратить.\n\n"
     "**Как в соревновании факультетов в Гарри Поттере!**\n\n"
     "Например, прошли 5 000 шагов – получили 20 очков.\n"
     "Съели большую шоколадку – потратили 10 очков.\n\n"
     "Вам не нужно считать калории или очень сильно заморачиваться в выборе диеты.\n\n"
-    "Смысл намного легче – просто старайтесь, чтобы в конце каждого дня у вас был положительный баланс.\n\n"
+    "**Смысл намного легче – просто старайтесь, чтобы в конце каждого дня у вас был положительный баланс.**\n\n"
     "В боте есть кнопка \"Обнулить историю\". Она позволит начать всё сначала.\n\n"
     "Если хотите, чтобы история автоматически обнулялась каждый день – нажмите на кнопку \"Дополнительно\", затем выберите \"Обнулять историю каждый день\".\n\n"
     "Приятного использования!\n\n"
@@ -103,7 +102,7 @@ def start(message):
     if user_id not in balances:
         balances[user_id] = {'balance': 0, 'auto_reset': False, 'last_reset': None}
         save_data()
-    bot.send_message(message.chat.id, WELCOME_MESSAGE, reply_markup=get_main_keyboard())
+    bot.send_message(message.chat.id, WELCOME_MESSAGE, parse_mode='Markdown', reply_markup=get_main_keyboard())
 
 # Обработка нажатий кнопок (основное меню и подменю)
 @bot.message_handler(func=lambda message: True)
@@ -136,48 +135,48 @@ def handle_message(message):
         bot.send_message(message.chat.id, 'Дополнительные настройки:', reply_markup=get_extra_keyboard())
 
     # Подменю "Положительные действия"
-    elif text == '5 000 шагов':
+    elif text == '5 000 шагов (+15)':
         balances[user_id]['balance'] += 15
         save_data()
         bot.send_message(message.chat.id, f'Добавлено 15 очков! Текущий баланс: {balances[user_id]["balance"]} очков', reply_markup=get_positive_actions_keyboard())
 
-    elif text == 'Полноценная тренировка':
+    elif text == 'Полноценная тренировка (+30)':
         balances[user_id]['balance'] += 30
         save_data()
         bot.send_message(message.chat.id, f'Добавлено 30 очков! Текущий баланс: {balances[user_id]["balance"]} очков', reply_markup=get_positive_actions_keyboard())
 
-    elif text == 'Мини-тренировка':
+    elif text == 'Мини-тренировка (+15)':
         balances[user_id]['balance'] += 15
         save_data()
         bot.send_message(message.chat.id, f'Добавлено 15 очков! Текущий баланс: {balances[user_id]["balance"]} очков', reply_markup=get_positive_actions_keyboard())
 
     # Подменю "Отрицательные действия"
-    elif text == 'Мини-шоколадка':
+    elif text == 'Мини-шоколадка (-10)':
         balances[user_id]['balance'] -= 10
         save_data()
         bot.send_message(message.chat.id, f'Вычтено 10 очков! Текущий баланс: {balances[user_id]["balance"]} очков', reply_markup=get_negative_actions_keyboard())
 
-    elif text == 'Большая шоколадка':
+    elif text == 'Большая шоколадка (-20)':
         balances[user_id]['balance'] -= 20
         save_data()
         bot.send_message(message.chat.id, f'Вычтено 20 очков! Текущий баланс: {balances[user_id]["balance"]} очков', reply_markup=get_negative_actions_keyboard())
 
-    elif text == 'Бокал вина/пива':
+    elif text == 'Бокал вина/пива (-20)':
         balances[user_id]['balance'] -= 20
         save_data()
         bot.send_message(message.chat.id, f'Вычтено 20 очков! Текущий баланс: {balances[user_id]["balance"]} очков', reply_markup=get_negative_actions_keyboard())
 
-    elif text == 'Кекс/круассан/пирожное':
+    elif text == 'Кекс/круассан/пирожное (-20)':
         balances[user_id]['balance'] -= 20
         save_data()
         bot.send_message(message.chat.id, f'Вычтено 20 очков! Текущий баланс: {balances[user_id]["balance"]} очков', reply_markup=get_negative_actions_keyboard())
 
-    elif text == 'Тяжёлое блюдо':
+    elif text == 'Тяжёлое блюдо (-30)':
         balances[user_id]['balance'] -= 30
         save_data()
         bot.send_message(message.chat.id, f'Вычтено 30 очков! Текущий баланс: {balances[user_id]["balance"]} очков', reply_markup=get_negative_actions_keyboard())
 
-    elif text == 'Сигара':
+    elif text == 'Сигара (-30)':
         balances[user_id]['balance'] -= 30
         save_data()
         bot.send_message(message.chat.id, f'Вычтено 30 очков! Текущий баланс: {balances[user_id]["balance"]} очков', reply_markup=get_negative_actions_keyboard())
