@@ -79,8 +79,21 @@ def get_auto_reset_keyboard(user_id, enable):
     keyboard.add(InlineKeyboardButton('Отмена', callback_data=f'auto_reset_cancel_{user_id}'))
     return keyboard
 
-# Приветственное сообщение
-WELCOME_MESSAGE = "привет"
+# Приветственное сообщение с экранированными символами и правильными очками
+WELCOME_MESSAGE = r"""
+Привет\ Это бот от телеграм-канала @caxapandwine\ Вы хотите быть в форме\, но считать калории вам лень\ Есть решение\n\n
+Это игра-тамагочи для вашего тела\ За каждое \"хорошее\" действие вы будете получать очки\ За каждое \"плохое\" действие \– тратить\n\n
+Как в соревновании факультетов в Гарри Поттере\n\n
+Например\, прошли 5 000 шагов \– получили 15 очков\n
+Съели большую шоколадку \– потратили 20 очков\n\n
+Вам не нужно считать калории или очень сильно заморачиваться в выборе диеты\n\n
+Смысл намного легче \– просто старайтесь\, чтобы в конце каждого дня у вас был положительный баланс\n\n
+В боте есть кнопка \"Обнулить историю\"\ Она позволит начать всё сначала\n\n
+Если хотите\, чтобы история автоматически обнулялась каждый день \– нажмите на кнопку \"Дополнительно\"\, затем выберите \"Обнулять историю каждый день\"\n\n
+Приятного использования\n\n
+P\S\ Пожелания и комментарии о работе бота присылайте в лс @Ilia_caxap\n
+P\P\S\ И подпишитесь на канал @caxapandwine
+"""
 
 # Реакция на /start
 @bot.message_handler(commands=['start'])
@@ -89,7 +102,7 @@ def start(message):
     if user_id not in balances:
         balances[user_id] = {'balance': 0, 'auto_reset': False, 'last_reset': None}
         save_data()
-    bot.send_message(message.chat.id, WELCOME_MESSAGE, reply_markup=get_main_keyboard())
+    bot.send_message(message.chat.id, WELCOME_MESSAGE, parse_mode='MarkdownV2', reply_markup=get_main_keyboard())
 
 # Обработка нажатий кнопок (основное меню и подменю)
 @bot.message_handler(func=lambda message: True)
