@@ -82,7 +82,7 @@ def get_auto_reset_keyboard(user_id, enable):
 # Приветственное сообщение с экранированными символами
 WELCOME_MESSAGE = r"""
 Привет\!\ Это бот от телеграм-канала @caxapandwine\. **Вы хотите быть в форме, но считать калории вам лень?** Есть решение\!\n\n
-Это игра-тамагочи для вашего тела\. За каждое "хорошее" действие вы будете получать очки\. За каждое плохое – тратить\.\n\n
+Это игра-тамагочи для вашего тела\. За каждое "хорошее" действие вы будете получать очки\. За каждое "плохое" действие \– тратить\.\n\n
 **Как в соревновании факультетов в Гарри Поттере\!\**\n\n
 Например, прошли 5 000 шагов \– получили 15 очков\.\n
 Съели большую шоколадку \– потратили 20 очков\.\n\n
@@ -162,9 +162,9 @@ def handle_message(message):
         bot.send_message(message.chat.id, f'Вычтено 20 очков! Текущий баланс: {balances[user_id]["balance"]} очков', reply_markup=get_negative_actions_keyboard())
 
     elif text == 'Бокал вина/пива (-20)':
-        balances[user_id]['balance'] -= 20
+        balances[user_id]['balance'] += 20
         save_data()
-        bot.send_message(message.chat.id, f'Вычтено 20 очков! Текущий баланс: {balances[user_id]["balance"]} очков', reply_markup=get_negative_actions_keyboard())
+        bot.send_message(message.chat.id, f'Добавлено 20 очков! Текущий баланс: {balances[user_id]["balance"]} очков', reply_markup=get_negative_actions_keyboard())
 
     elif text == 'Кекс/круассан/пирожное (-20)':
         balances[user_id]['balance'] -= 20
