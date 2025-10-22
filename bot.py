@@ -79,7 +79,7 @@ def get_auto_reset_keyboard(user_id, enable):
     keyboard.add(InlineKeyboardButton('Отмена', callback_data=f'auto_reset_cancel_{user_id}'))
     return keyboard
 
-# Приветственное сообщение с экранированными символами и обновлёнными очками
+# Приветственное сообщение с экранированными символами и правильными очками
 WELCOME_MESSAGE = r"""
 Привет\ Это бот от телеграм-канала @caxapandwine\ Вы хотите быть в форме\, но считать калории вам лень\ Есть решение\n\n
 Это игра-тамагочи для вашего тела\ За каждое \"хорошее\" действие вы будете получать очки\ За каждое \"плохое\" действие \– тратить\n\n
@@ -127,7 +127,7 @@ def handle_message(message):
     elif text == 'Обнулить историю':
         bot.send_message(
             message.chat.id, 
-            f'⚠️ Вы уверены\, что хотите обнулить историю?\n\nЭто действие удалит все ваши очки ({balances[user_id]["balance"]} очков) и нельзя будет отменить\\!',
+            f'⚠️ Вы уверены, что хотите обнулить историю?\n\nЭто действие удалит все ваши очки ({balances[user_id]["balance"]} очков) и нельзя будет отменить!',
             reply_markup=get_reset_keyboard(user_id)
         )
 
@@ -179,7 +179,7 @@ def handle_message(message):
     elif text == 'Сигара (-30)':
         balances[user_id]['balance'] -= 30
         save_data()
-        bot.send_message(message.chat.id, f'Вычтено 30 очков! Текущий баланс: {balances[user_id]["balance"]} очков', reply_markup=get_negative_actions_keyboard())
+        bot.send_message(message.chat.id, f'Вычтено 20 очков! Текущий баланс: {balances[user_id]["balance"]} очков', reply_markup=get_negative_actions_keyboard())
 
     # Подменю "Дополнительно"
     elif text == 'Обнулять историю каждый день':
@@ -195,7 +195,7 @@ def handle_message(message):
         bot.send_message(message.chat.id, 'Возвращаемся в главное меню:', reply_markup=get_main_keyboard())
 
     else:
-        bot.send_message(message.chat.id, 'Используй кнопки!', reply_markup=get_main_keyboard())
+        bot.send_message(message.chat.id, 'Используй кнопки!', reply_markup=get_negative_actions_keyboard())
 
 # Обработка inline-кнопок (подтверждение обнуления)
 @bot.callback_query_handler(func=lambda call: call.data.startswith('reset_'))
