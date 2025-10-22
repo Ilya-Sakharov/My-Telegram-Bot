@@ -161,7 +161,7 @@ def handle_message(message):
     elif text == 'Показать баланс':
         bot.send_message(message.chat.id, f'Ваш баланс \– {balances[user_id]["balance"]} очков', reply_markup=get_main_keyboard())
 
-       elif text == 'Обнулить историю':
+    elif text == 'Обнулить историю':
         bot.send_message(
             message.chat.id, 
             f'⚠️ Вы уверены, что хотите обнулить историю?\n\nЭто действие удалит все ваши очки ({balances[user_id]["balance"]} очков) и нельзя будет отменить!',
