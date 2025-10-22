@@ -38,20 +38,20 @@ def get_main_keyboard():
 # Создаём меню "Положительные действия"
 def get_positive_actions_keyboard():
     keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-    keyboard.add(KeyboardButton('5 000 шагов'))
-    keyboard.add(KeyboardButton('Полноценная тренировка'))
-    keyboard.add(KeyboardButton('Мини-тренировка'))
+    keyboard.add(KeyboardButton('5 000 шагов – плюс 15'))
+    keyboard.add(KeyboardButton('Полноценная тренировка – плюс 30'))
+    keyboard.add(KeyboardButton('Мини-тренировка – плюс 15'))
     keyboard.add(KeyboardButton('Вернуться в главное меню'))
     return keyboard
 
 # Создаём меню "Отрицательные действия"
 def get_negative_actions_keyboard():
     keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-    keyboard.add(KeyboardButton('Мини-шоколадка'))
-    keyboard.add(KeyboardButton('Большая шоколадка'))
-    keyboard.add(KeyboardButton('Бокал вина/пива'))
-    keyboard.add(KeyboardButton('Кекс/круассан/пирожное'))
-    keyboard.add(KeyboardButton('Тяжёлое блюдо'))
+    keyboard.add(KeyboardButton('Мини-шоколадка (Twix) – минус 10'))
+    keyboard.add(KeyboardButton('Большая шоколадка (Milka) – минус 20'))
+    keyboard.add(KeyboardButton('Бокал вина/пива – минус 20'))
+    keyboard.add(KeyboardButton('Кекс/круассан/пирожное – минус 20'))
+    keyboard.add(KeyboardButton('Тяжёлое блюдо (паста со сливками) – минус 30'))
     keyboard.add(KeyboardButton('Сигара'))
     keyboard.add(KeyboardButton('Вернуться в главное меню'))
     return keyboard
@@ -81,9 +81,10 @@ def get_auto_reset_keyboard(user_id, enable):
 
 # Приветственное сообщение
 WELCOME_MESSAGE = (
-    "Привет! Это бот от телеграм-канала @caxapandwine. Вы хотите быть в форме, но считать калории вам лень? Есть решение!\n\n"
+    "Привет! Это бот от телеграм-канала @caxapandwine \n\n"
+    "Вы хотите **быть в форме, но считать калории вам лень?** Есть решение!\n\n"
     "Это игра-тамагочи для вашего тела. За каждое \"хорошее\" действие вы будете получать очки. За каждое плохое – тратить.\n\n"
-    "Как в соревновании факультетов в Гарри Поттере!\n\n"
+    "**Как в соревновании факультетов в Гарри Поттере!**\n\n"
     "Например, прошли 5 000 шагов – получили 20 очков.\n"
     "Съели большую шоколадку – потратили 10 очков.\n\n"
     "Вам не нужно считать калории или очень сильно заморачиваться в выборе диеты.\n\n"
